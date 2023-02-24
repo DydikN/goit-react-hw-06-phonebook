@@ -1,56 +1,56 @@
-import { useState, useEffect } from 'react';
-import { nanoid } from 'nanoid';
+import { useSelector, useDispatch } from 'react-redux';
 
 import ContactForm from './ContactForm/ContactForm';
 import Filter from './Filter/Filter';
 import ContactList from './ContactList/ContactList';
+import { addContact, deleteContact } from 'redux/contacts/contacts-slice';
+import { setFilter } from 'redux/filter/filter-slice';
 
-import styles from './app.module.css';
+import styles from './app.module.scss';
 import Notiflix from 'notiflix';
 
 function App() {
-  const [contacts, setContacts] = useState(() => {
-    return JSON.parse(localStorage.getItem('contacts')) ?? [];
-  });
-  const [filter, setFilter] = useState('');
+  const contacts = useSelector(store => store.contacts);
+  const filter = useSelector(store => store.filter);
 
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  const dispatch = useDispatch();
 
-  const handleFormSubmit = (name, number) => {
-    const id = nanoid();
-    const contact = {
-      id,
-      name,
-      number,
-    };
+  const isDublicate = name => {
+    const normalizedName = name.toLowerCase();
+    const result = contacts.find(({ name }) => {
+      return name.toLowerCase() === normalizedName;
+    });
 
-    if (
-      contacts.find(item => {
-        return item.name.toLowerCase() === contact.name.toLowerCase();
-      })
-    ) {
-      return Notiflix.Notify.failure(`${contact.name} is already in contacts`);
+    return Boolean(result);
+  };
+
+  const handleFormSubmit = ({ name, number }) => {
+    if (isDublicate(name)) {
+      return Notiflix.Notify.failure(`${name} is already in contacts`);
     }
-    setContacts(prevContacts => [contact, ...prevContacts]);
+
+    dispatch(addContact({ name, number }));
   };
 
-  const changeFilter = e => {
-    setFilter(e.currentTarget.value);
+  const deleteContactById = id => {
+    dispatch(deleteContact(id));
   };
 
-  const deleteContact = contactId => {
-    setContacts(prevContacts =>
-      prevContacts.filter(contact => contact.id !== contactId)
-    );
+  const changeFilter = ({ target }) => {
+    dispatch(setFilter(target.value));
   };
 
   const getVisibleContacts = () => {
     const normalizedFilter = filter.toLowerCase();
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(normalizedFilter)
-    );
+
+    const result = contacts.filter(({ name, number }) => {
+      return (
+        name.toLowerCase().includes(normalizedFilter) ||
+        number.toLowerCase().includes(normalizedFilter)
+      );
+    });
+
+    return result;
   };
 
   return (
@@ -60,11 +60,11 @@ function App() {
 
       <div>
         <h2>Constacts</h2>
-        <Filter value={filter} filter={changeFilter} />
+        <Filter value={filter} changeFilter={changeFilter} />
         {contacts.length > 0 ? (
           <ContactList
             contacts={getVisibleContacts()}
-            deleteContact={deleteContact}
+            deleteContact={deleteContactById}
           />
         ) : (
           <p>No contacts</p>

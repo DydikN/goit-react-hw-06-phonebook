@@ -1,38 +1,26 @@
 import { useState } from 'react';
 
-import styles from './contact-form.module.css';
+import styles from './contact-form.module.scss';
 import PropTypes from 'prop-types';
+import inititalState from './initialState';
 
 function ContactForm({ onSubmit }) {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+  const [state, setState] = useState({ ...inititalState });
 
-  const handleChange = e => {
-    const { name, value } = e.target;
-    switch (name) {
-      case 'name':
-        setName(value);
-        break;
-
-      case 'number':
-        setNumber(value);
-        break;
-
-      default:
-        break;
-    }
+  const handleChange = ({ target }) => {
+    const { name, value } = target;
+    setState(prevState => {
+      return { ...prevState, [name]: value };
+    });
   };
 
   const handleSubmit = e => {
     e.preventDefault();
-    onSubmit(name, number);
-    reset();
+    onSubmit({ ...state });
+    setState({ ...inititalState });
   };
 
-  const reset = () => {
-    setName('');
-    setNumber('');
-  };
+  const { name, number } = state;
 
   return (
     <form className={styles.container} onSubmit={handleSubmit}>
@@ -46,6 +34,7 @@ function ContactForm({ onSubmit }) {
           onChange={handleChange}
           value={name}
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
+          placeholder="Surname Name"
           required
         />
       </label>
