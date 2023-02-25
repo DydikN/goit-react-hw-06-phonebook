@@ -6,28 +6,11 @@ import Notiflix from 'notiflix';
 import styles from './contact-form.module.scss';
 import inititalState from './initialState';
 
-function ContactForm({ onSubmit }) {
+function ContactForm() {
   const [state, setState] = useState({ ...inititalState });
   const contacts = useSelector(store => store.contacts);
 
   const dispatch = useDispatch();
-
-  const isDublicate = name => {
-    const normalizedName = name.toLowerCase();
-    const result = contacts.find(({ name }) => {
-      return name.toLowerCase() === normalizedName;
-    });
-
-    return Boolean(result);
-  };
-
-  const handleFormSubmit = ({ name, number }) => {
-    if (isDublicate(name)) {
-      return Notiflix.Notify.failure(`${name} is already in contacts`);
-    }
-
-    dispatch(addContact({ name, number }));
-  };
 
   const handleChange = ({ target }) => {
     const { name, value } = target;
@@ -38,7 +21,15 @@ function ContactForm({ onSubmit }) {
 
   const handleSubmit = e => {
     e.preventDefault();
-    handleFormSubmit({ ...state });
+    if (
+      contacts.find(
+        contact => contact.name.toLowerCase() === name.toLowerCase()
+      )
+    ) {
+      return Notiflix.Notify.failure(`${name} is already in contacts`);
+    }
+
+    dispatch(addContact({ name, number }));
     setState({ ...inititalState });
   };
 
