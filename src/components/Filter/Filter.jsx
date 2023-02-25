@@ -1,6 +1,16 @@
-import PropTypes from 'prop-types';
+import { useSelector, useDispatch } from 'react-redux';
 
-const Filter = ({ changeFilter, value }) => {
+import { setFilter } from 'redux/filter/filter-slice';
+
+const Filter = () => {
+  const dispatch = useDispatch();
+
+  const filter = useSelector(store => store.filter);
+
+  const changeFilter = ({ target }) => {
+    dispatch(setFilter(target.value));
+  };
+
   return (
     <>
       <p>Find contacts by name</p>
@@ -9,14 +19,10 @@ const Filter = ({ changeFilter, value }) => {
         name="filter"
         pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
         onChange={changeFilter}
-        value={value}
+        value={filter}
       />
     </>
   );
 };
 
 export default Filter;
-Filter.prototype = {
-  changeFilter: PropTypes.func.isRequired,
-  value: PropTypes.string.isRequired,
-};
